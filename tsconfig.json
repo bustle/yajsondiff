@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "declaration": false,
+    "outDir": "dist",
     "strictNullChecks": true,
     "noImplicitAny": true,
     "lib": [
@@ -12,8 +13,7 @@
       "dom"
     ],
     "esModuleInterop": true,
-    "sourceMap": true,
-    "noEmit": true
+    "sourceMap": true
   },
   "include": [
     "lib"
