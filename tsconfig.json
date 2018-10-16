@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "es2017",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "declaration": false,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noEmit": true
+  },
+  "include": [
+    "lib"
+  ]
+}
