@@ -89,7 +89,7 @@ function hashThisString(string: string) {
 
 // Gets a hash of the given object in an array order-independent fashion
 // also object key order independent (easier since they can be alphabetized)
-function getOrderIndependentHash(object: any) {
+export function getOrderIndependentHash(object: any) {
   let accum = 0;
   const type = realTypeOf(object);
 
@@ -280,7 +280,7 @@ function accumulateDiff({ lhs, rhs, prefilter, accum }: AccumulateDiffOptions) {
   return (accum) ? accum : (changes.length) ? changes : undefined;
 }
 
-function accumulateOrderIndependentDiff({ lhs, rhs, prefilter, accum }: AccumulateDiffOptions) {
+export function accumulateOrderIndependentDiff({ lhs, rhs, prefilter, accum }: AccumulateDiffOptions) {
   const observer = (accum) ?
     function (difference: any) {
       if (difference) {
@@ -449,7 +449,7 @@ export function revertChange({ target, change }: ApplyChangeOptions) {
 interface ApplyDiffOptions {
   readonly target: any
   readonly source: any
-  readonly filter: (target: any, source: any, change: Change) => any
+  readonly filter?: (target: any, source: any, change: Change) => any
 }
 
 export function applyDiff({ target, source, filter }: ApplyDiffOptions) {
@@ -463,7 +463,6 @@ export function applyDiff({ target, source, filter }: ApplyDiffOptions) {
   }
 }
 
-// hackish...
-accumulateDiff.DeepDiff = accumulateDiff;
-
-export default accumulateDiff
+export default function(original: any, updated: any, prefilter?: (path: any, key: any) => void, accum?: any[]) {
+  return accumulateDiff({ lhs: original, rhs: updated, prefilter, accum })
+}
