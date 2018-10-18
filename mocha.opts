@@ -1,5 +1,4 @@
 --bail
 --recursive
 --require ts-node/register
---require tsconfig-paths/register
 lib/*.test.js
