@@ -50,7 +50,8 @@
     "ci": "mocha --reporter mocha-junit-reporter test/**/*.js",
     "test": "npm run unit-test && npm run lint",
     "unit-test": "TS_NODE_TRANSPILE_ONLY=true mocha --opts mocha.opts",
-    "lint": "npm run build && tslint lib/*.ts"
+    "lint": "tslint lib/*.ts",
+    "format": "tslint lib/*.ts --fix"
   },
   "devDependencies": {
     "@types/expect.js": "^0.3.29",

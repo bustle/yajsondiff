@@ -17,12 +17,10 @@
     "member-access": [ true, "no-public" ],
     "member-ordering": [ true, { "order": "instance-sandwich", "alphabetize": true } ],
     "no-console": true,
-    "no-delete": true,
     "no-empty-interface": false,
     "no-empty": false,
-    "no-method-signature": true,
     "no-object-mutation": false,
-    "no-parameter-reassignment": true,
+    "no-parameter-reassignment": false,
     "no-return-await": true,
     "no-var-keyword": true,
     "no-shadowed-variable": [true, {"temporalDeadZone": false }],
@@ -31,11 +29,10 @@
     "ordered-imports": false,
     "quotemark": [ true, "single", "avoid-escape" ],
     "radix": true,
-    "readonly-array": [ true, "ignore-local" ],
-    "readonly-keyword": [true, "ignore-local" ],
     "space-before-function-paren": false ,
     "trailing-comma": [ true ],
-    "prettier": true
+    "prettier": true,
+    "no-bitwise": false
   },
   "rulesDirectory": [
     "tslint-plugin-prettier"
