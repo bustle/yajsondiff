@@ -2,7 +2,6 @@
   "defaultSeverity": "error",
   "extends": [
     "tslint:recommended",
-    "tslint-immutable",
     "tslint-config-prettier"
   ],
   "linterOptions": {
