@@ -1,3 +1,5 @@
+import cloneDeep from 'lodash.clonedeep'
+
 abstract class BaseDiff {
   readonly kind: string
   readonly path: any[] | undefined
@@ -334,12 +336,7 @@ export function applyArrayChange({ arr, index, change }: ArrayChangeOptions) {
   return arr
 }
 
-interface ApplyChangeOptions {
-  readonly target: any
-  readonly change: Change
-}
-
-export function applyChange({ target, change }: ApplyChangeOptions) {
+function applyChange(target: any, change: Change) {
   if (target && change && change.kind) {
     let it = target,
       i = -1,
@@ -375,6 +372,16 @@ export function applyChange({ target, change }: ApplyChangeOptions) {
         break
     }
   }
+}
+
+export function applyChanges(target: any, changes: Change | Change[]) {
+  const targetClone = cloneDeep(target)
+  changes = Array.isArray(changes) ? changes : [changes]
+  for (const change of changes) {
+    const changeClone = cloneDeep(change)
+    applyChange(targetClone, changeClone)
+  }
+  return targetClone
 }
 
 export function revertArrayChange({ arr, index, change }: ArrayChangeOptions) {
@@ -419,7 +426,7 @@ export function revertArrayChange({ arr, index, change }: ArrayChangeOptions) {
   return arr
 }
 
-export function revertChange({ target, change }: ApplyChangeOptions) {
+function revertChange(target: any, change: Change) {
   if (target && change && change.kind) {
     if (!change.path) {
       throw new Error('This change doesn\'t have a path')
@@ -453,6 +460,16 @@ export function revertChange({ target, change }: ApplyChangeOptions) {
   }
 }
 
+export function revertChanges(target: any, changes: Change | Change[]) {
+  const targetClone = cloneDeep(target)
+  changes = Array.isArray(changes) ? changes : [changes]
+  for (const change of changes) {
+    const changeClone = cloneDeep(change)
+    revertChange(targetClone, changeClone)
+  }
+  return targetClone
+}
+
 interface ApplyDiffOptions {
   readonly target: any
   readonly source: any
@@ -463,7 +480,7 @@ export function applyDiff({ target, source, filter }: ApplyDiffOptions) {
   if (target && source) {
     const onChange = function (change: Change) {
       if (!filter || filter(target, source, change)) {
-        applyChange({ target, change })
+        applyChange(target, change)
       }
     }
     observableDiff({ lhs: target, rhs: source, observer: onChange })
