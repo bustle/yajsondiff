@@ -203,58 +203,67 @@ export function deepDiff({
           lhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
           rhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
         }
-        let i = rhs.length - 1
-        let j = lhs.length - 1
-        while (i > j) {
-          changes.push(new ArrayDiff(currentPath, i, new NewDiff(undefined, rhs[i--])))
+        let rhsLength = rhs.length - 1
+        let lhsLength = lhs.length - 1
+        while (rhsLength > lhsLength) {
+          changes.push(new ArrayDiff(currentPath, rhsLength, new NewDiff(undefined, rhs[rhsLength--])))
         }
-        while (j > i) {
-          changes.push(new ArrayDiff(currentPath, j, new DeleteDiff(undefined, lhs[j--])))
+        while (lhsLength > rhsLength) {
+          changes.push(new ArrayDiff(currentPath, lhsLength, new DeleteDiff(undefined, lhs[lhsLength--])))
         }
-        for (; i >= 0; i--) {
-          deepDiff({ lhs: lhs[i], rhs: rhs[i], changes, prefilter, path: currentPath, key: i, stack, orderIndependent })
+        for (; rhsLength >= 0; rhsLength--) {
+          deepDiff({
+            lhs: lhs[rhsLength],
+            rhs: rhs[rhsLength],
+            changes,
+            prefilter,
+            path: currentPath,
+            key: rhsLength,
+            stack,
+            orderIndependent,
+          })
         }
       } else {
         const lhsKeys = Object.keys(lhs)
         const rhsKeys: Array<string | null> = Object.keys(rhs)
         for (let i = 0; i < lhsKeys.length; i++) {
-          const k = lhsKeys[i]
-          const indexOfRhsKey = rhsKeys.indexOf(k)
+          const lhsKey = lhsKeys[i]
+          const indexOfRhsKey = rhsKeys.indexOf(lhsKey)
           if (indexOfRhsKey >= 0) {
             deepDiff({
-              lhs: lhs[k],
-              rhs: rhs[k],
+              lhs: lhs[lhsKey],
+              rhs: rhs[lhsKey],
               changes,
               prefilter,
               path: currentPath,
-              key: k,
+              key: lhsKey,
               stack,
               orderIndependent,
             })
             rhsKeys[indexOfRhsKey] = null
           } else {
             deepDiff({
-              lhs: lhs[k],
+              lhs: lhs[lhsKey],
               rhs: undefined,
               changes,
               prefilter,
               path: currentPath,
-              key: k,
+              key: lhsKey,
               stack,
               orderIndependent,
             })
           }
         }
         for (let i = 0; i < rhsKeys.length; i++) {
-          const k = rhsKeys[i]
-          if (k) {
+          const rhsKey = rhsKeys[i]
+          if (rhsKey) {
             deepDiff({
               lhs: undefined,
-              rhs: rhs[k],
+              rhs: rhs[rhsKey],
               changes,
               prefilter,
               path: currentPath,
-              key: k,
+              key: rhsKey,
               stack,
               orderIndependent,
             })
