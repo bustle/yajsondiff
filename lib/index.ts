@@ -92,7 +92,7 @@ interface DeepDiffOptions {
   readonly stack?: any[]
 }
 
-function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [] }: DeepDiffOptions) {
+function findDifferences({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [] }: DeepDiffOptions) {
   const currentPath = path.slice(0)
   if (typeof key !== 'undefined' && key !== null) {
     if (prefilter && prefilter(currentPath, key)) {
@@ -150,7 +150,7 @@ function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [
           changes.push(new ArrayDiff(currentPath, lhsLength, new DeleteDiff(undefined, lhs[lhsLength--])))
         }
         for (; rhsLength >= 0; rhsLength--) {
-          deepDiff({
+          findDifferences({
             lhs: lhs[rhsLength],
             rhs: rhs[rhsLength],
             changes,
@@ -166,7 +166,7 @@ function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [
         for (const lhsKey of lhsKeys) {
           const indexOfRhsKey = rhsKeys.indexOf(lhsKey)
           if (indexOfRhsKey >= 0) {
-            deepDiff({
+            findDifferences({
               lhs: lhs[lhsKey],
               rhs: rhs[lhsKey],
               changes,
@@ -177,7 +177,7 @@ function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [
             })
             rhsKeys[indexOfRhsKey] = null
           } else {
-            deepDiff({
+            findDifferences({
               lhs: lhs[lhsKey],
               rhs: undefined,
               changes,
@@ -190,7 +190,7 @@ function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [
         }
         for (const rhsKey of rhsKeys) {
           if (rhsKey) {
-            deepDiff({
+            findDifferences({
               lhs: undefined,
               rhs: rhs[rhsKey],
               changes,
@@ -387,8 +387,8 @@ export function applyChanges(target: any, changes: Change | Change[]) {
   return targetClone
 }
 
-export default function(original: any, updated: any, prefilter?: (path: any, key: any) => void) {
+export function diff(original: any, updated: any, prefilter?: (path: any, key: any) => void) {
   const changes: Change[] = []
-  deepDiff({ lhs: original, rhs: updated, changes, prefilter })
+  findDifferences({ lhs: original, rhs: updated, changes, prefilter })
   return changes.length ? changes : undefined
 }
