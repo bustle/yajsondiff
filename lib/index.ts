@@ -388,6 +388,7 @@ export function applyChanges(target: any, changes: Change | Change[]) {
 }
 
 export default function(original: any, updated: any, prefilter?: (path: any, key: any) => void) {
-  const differences = deepDiff({ lhs: original, rhs: updated, prefilter })
-  return differences.length ? differences : undefined
+  const changes: Change[] = []
+  deepDiff({ lhs: original, rhs: updated, changes, prefilter })
+  return changes.length ? changes : undefined
 }
