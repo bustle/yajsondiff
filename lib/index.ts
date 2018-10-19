@@ -226,8 +226,7 @@ export function deepDiff({
       } else {
         const lhsKeys = Object.keys(lhs)
         const rhsKeys: Array<string | null> = Object.keys(rhs)
-        for (let i = 0; i < lhsKeys.length; i++) {
-          const lhsKey = lhsKeys[i]
+        for (const lhsKey of lhsKeys) {
           const indexOfRhsKey = rhsKeys.indexOf(lhsKey)
           if (indexOfRhsKey >= 0) {
             deepDiff({
@@ -254,8 +253,7 @@ export function deepDiff({
             })
           }
         }
-        for (let i = 0; i < rhsKeys.length; i++) {
-          const rhsKey = rhsKeys[i]
+        for (const rhsKey of rhsKeys) {
           if (rhsKey) {
             deepDiff({
               lhs: undefined,
