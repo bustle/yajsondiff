@@ -103,10 +103,10 @@ export function getOrderIndependentHash(object: any) {
   const type = realTypeOf(object)
 
   if (type === 'array') {
-    object.forEach((item: any) => {
+    for (const item of object) {
       // Addition is commutative so this is order indep
       accum += getOrderIndependentHash(item)
-    })
+    }
 
     const arrayString = '[type: array, hash: ' + accum + ']'
     return accum + hashThisString(arrayString)
@@ -163,68 +163,64 @@ export function deepDiff({
     rhs = rhs.toString()
   }
 
-  const ltype = typeof lhs
-  const rtype = typeof rhs
-  let i
-  let j
-  let k
-  let other
+  const lType = typeof lhs
+  const rType = typeof rhs
 
-  const ldefined =
-    ltype !== 'undefined' ||
+  const lDefined =
+    lType !== 'undefined' ||
     (stack &&
-      stack.length > 0 &&
+      stack.length &&
       stack[stack.length - 1].lhs &&
       Object.getOwnPropertyDescriptor(stack[stack.length - 1].lhs, key))
-  const rdefined =
-    rtype !== 'undefined' ||
+  const rDefined =
+    rType !== 'undefined' ||
     (stack &&
-      stack.length > 0 &&
+      stack.length &&
       stack[stack.length - 1].rhs &&
       Object.getOwnPropertyDescriptor(stack[stack.length - 1].rhs, key))
 
-  if (!ldefined && rdefined) {
+  if (!lDefined && rDefined) {
     changes.push(new NewDiff(currentPath, rhs))
-  } else if (!rdefined && ldefined) {
+  } else if (!rDefined && lDefined) {
     changes.push(new DeleteDiff(currentPath, lhs))
   } else if (realTypeOf(lhs) !== realTypeOf(rhs)) {
     changes.push(new EditDiff(currentPath, lhs, rhs))
   } else if (realTypeOf(lhs) === 'date' && lhs - rhs !== 0) {
     changes.push(new EditDiff(currentPath, lhs, rhs))
-  } else if (ltype === 'object' && lhs !== null && rhs !== null) {
-    for (i = stack.length - 1; i > -1; --i) {
+  } else if (lType === 'object' && lhs !== null && rhs !== null) {
+    let reachedBottomOfStack
+    for (let i = stack.length - 1; i > -1; i--) {
       if (stack[i].lhs === lhs) {
-        other = true
+        reachedBottomOfStack = true
         break
       }
     }
-    if (!other) {
+    if (!reachedBottomOfStack) {
       stack.push({ lhs, rhs })
       if (Array.isArray(lhs)) {
         // If order doesn't matter, we need to sort our arrays
         if (orderIndependent) {
           lhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
-
           rhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
         }
-        i = rhs.length - 1
-        j = lhs.length - 1
+        let i = rhs.length - 1
+        let j = lhs.length - 1
         while (i > j) {
           changes.push(new ArrayDiff(currentPath, i, new NewDiff(undefined, rhs[i--])))
         }
         while (j > i) {
           changes.push(new ArrayDiff(currentPath, j, new DeleteDiff(undefined, lhs[j--])))
         }
-        for (; i >= 0; --i) {
+        for (; i >= 0; i--) {
           deepDiff({ lhs: lhs[i], rhs: rhs[i], changes, prefilter, path: currentPath, key: i, stack, orderIndependent })
         }
       } else {
-        const akeys = Object.keys(lhs)
-        const pkeys: Array<string | null> = Object.keys(rhs)
-        for (i = 0; i < akeys.length; ++i) {
-          k = akeys[i]
-          other = pkeys.indexOf(k)
-          if (other >= 0) {
+        const lhsKeys = Object.keys(lhs)
+        const rhsKeys: Array<string | null> = Object.keys(rhs)
+        for (let i = 0; i < lhsKeys.length; i++) {
+          const k = lhsKeys[i]
+          const indexOfRhsKey = rhsKeys.indexOf(k)
+          if (indexOfRhsKey >= 0) {
             deepDiff({
               lhs: lhs[k],
               rhs: rhs[k],
@@ -235,7 +231,7 @@ export function deepDiff({
               stack,
               orderIndependent,
             })
-            pkeys[other] = null
+            rhsKeys[indexOfRhsKey] = null
           } else {
             deepDiff({
               lhs: lhs[k],
@@ -249,8 +245,8 @@ export function deepDiff({
             })
           }
         }
-        for (i = 0; i < pkeys.length; ++i) {
-          k = pkeys[i]
+        for (let i = 0; i < rhsKeys.length; i++) {
+          const k = rhsKeys[i]
           if (k) {
             deepDiff({
               lhs: undefined,
@@ -271,7 +267,7 @@ export function deepDiff({
       changes.push(new EditDiff(currentPath, lhs, rhs))
     }
   } else if (lhs !== rhs) {
-    if (!(ltype === 'number' && isNaN(lhs) && isNaN(rhs))) {
+    if (!(lType === 'number' && isNaN(lhs) && isNaN(rhs))) {
       changes.push(new EditDiff(currentPath, lhs, rhs))
     }
   }
