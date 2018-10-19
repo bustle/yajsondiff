@@ -1,5 +1,7 @@
+const yadiffjson = require('../dist')
+const { default: yaDiff, applyChanges, accumulateOrderIndependentDiff: orderIndependentDiff, getOrderIndependentHash: orderIndepHash, applyDiff, revertChanges } = yadiffjson
+
 var util = require('util')
-  , diff = require('..')
   , data = require('./practice-data')
   ;
 
@@ -24,14 +26,12 @@ while (++cycle < 10) {
     comparand = roll[i] || data[i];
 
     stat.diff = { mark: process.hrtime() };
-    records = diff(prior, comparand);
+    records = yaDiff(prior, comparand);
     stat.diff.intv = process.hrtime(stat.diff.mark);
 
     if (records) {
-      stat.apply = { count: diff.length, mark: process.hrtime() };
-      records.forEach(function (ch) {
-        diff.applyChange(prior, comparand, ch);
-      });
+      stat.apply = { count: records.length, mark: process.hrtime() };
+      applyChanges(prior, records)
       stat.apply.intv = process.hrtime(stat.apply.mark);
 
       prior = comparand;
