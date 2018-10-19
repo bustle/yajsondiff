@@ -82,74 +82,17 @@ function realTypeOf(subject: any) {
   return 'object'
 }
 
-// http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-function hashThisString(str: string) {
-  let hash = 0
-  if (str.length === 0) {
-    return hash
-  }
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32bit integer
-  }
-  return hash
-}
-
-// Gets a hash of the given object in an array order-independent fashion
-// also object key order independent (easier since they can be alphabetized)
-export function getOrderIndependentHash(object: any) {
-  let accum = 0
-  const type = realTypeOf(object)
-
-  if (type === 'array') {
-    for (const item of object) {
-      // Addition is commutative so this is order indep
-      accum += getOrderIndependentHash(item)
-    }
-
-    const arrayString = '[type: array, hash: ' + accum + ']'
-    return accum + hashThisString(arrayString)
-  }
-
-  if (type === 'object') {
-    for (const key in object) {
-      if (object.hasOwnProperty(key)) {
-        const keyValueString =
-          '[ type: object, key: ' + key + ', value hash: ' + getOrderIndependentHash(object[key]) + ']'
-        accum += hashThisString(keyValueString)
-      }
-    }
-
-    return accum
-  }
-
-  // Non object, non array...should be good?
-  const stringToHash = '[ type: ' + type + ' ; value: ' + object + ']'
-  return accum + hashThisString(stringToHash)
-}
-
 interface DeepDiffOptions {
   readonly changes?: Change[]
   readonly key?: any
   readonly lhs: any
-  readonly orderIndependent?: boolean
   readonly path?: string[]
   readonly prefilter?: (path: any, key: any) => void
   readonly rhs: any
   readonly stack?: any[]
 }
 
-export function deepDiff({
-  lhs,
-  rhs,
-  changes = [],
-  prefilter,
-  path = [],
-  key,
-  stack = [],
-  orderIndependent = false,
-}: DeepDiffOptions) {
+function deepDiff({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [] }: DeepDiffOptions) {
   const currentPath = path.slice(0)
   if (typeof key !== 'undefined' && key !== null) {
     if (prefilter && prefilter(currentPath, key)) {
@@ -198,11 +141,6 @@ export function deepDiff({
     if (!reachedBottomOfStack) {
       stack.push({ lhs, rhs })
       if (Array.isArray(lhs)) {
-        // If order doesn't matter, we need to sort our arrays
-        if (orderIndependent) {
-          lhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
-          rhs.sort((a: any, b: any) => getOrderIndependentHash(a) - getOrderIndependentHash(b))
-        }
         let rhsLength = rhs.length - 1
         let lhsLength = lhs.length - 1
         while (rhsLength > lhsLength) {
@@ -220,7 +158,6 @@ export function deepDiff({
             path: currentPath,
             key: rhsLength,
             stack,
-            orderIndependent,
           })
         }
       } else {
@@ -237,7 +174,6 @@ export function deepDiff({
               path: currentPath,
               key: lhsKey,
               stack,
-              orderIndependent,
             })
             rhsKeys[indexOfRhsKey] = null
           } else {
@@ -249,7 +185,6 @@ export function deepDiff({
               path: currentPath,
               key: lhsKey,
               stack,
-              orderIndependent,
             })
           }
         }
@@ -263,7 +198,6 @@ export function deepDiff({
               path: currentPath,
               key: rhsKey,
               stack,
-              orderIndependent,
             })
           }
         }
@@ -278,86 +212,11 @@ export function deepDiff({
       changes.push(new EditDiff(currentPath, lhs, rhs))
     }
   }
-}
 
-interface ObservableDiffOptions {
-  readonly lhs: any
-  readonly observer?: (change: any) => void
-  readonly orderIndependent?: boolean
-  readonly prefilter?: (path: any, key: any) => void
-  readonly rhs: any
-}
-
-export function observableDiff({ lhs, rhs, observer, prefilter, orderIndependent }: ObservableDiffOptions) {
-  const changes: any[] = []
-  deepDiff({ lhs, rhs, changes, prefilter, orderIndependent })
-  if (observer) {
-    for (const change of changes) {
-      observer(change)
-    }
-  }
   return changes
 }
 
-interface OrderIndependentDeepDiffOptions {
-  readonly changes?: Change[]
-  readonly key?: any
-  readonly lhs: any
-  readonly path?: string[]
-  readonly prefilter?: (path: any, key: any) => void
-  readonly rhs: any
-  readonly stack?: any[]
-}
-
-export function orderIndependentDeepDiff({
-  lhs,
-  rhs,
-  changes,
-  prefilter,
-  path,
-  key,
-  stack,
-}: OrderIndependentDeepDiffOptions) {
-  return deepDiff({ lhs, rhs, changes, prefilter, path, key, stack, orderIndependent: true })
-}
-
-interface AccumulateDiffOptions {
-  readonly accum?: any[]
-  readonly lhs: any
-  readonly prefilter?: (path: any, key: any) => void
-  readonly rhs: any
-}
-function accumulateDiff({ lhs, rhs, prefilter, accum }: AccumulateDiffOptions) {
-  const observer = accum
-    ? (difference: any) => {
-        if (difference) {
-          accum.push(difference)
-        }
-      }
-    : undefined
-  const changes = observableDiff({ lhs, rhs, observer, prefilter })
-  return accum ? accum : changes.length ? changes : undefined
-}
-
-export function accumulateOrderIndependentDiff({ lhs, rhs, prefilter, accum }: AccumulateDiffOptions) {
-  const observer = accum
-    ? (difference: any) => {
-        if (difference) {
-          accum.push(difference)
-        }
-      }
-    : undefined
-  const changes = observableDiff({ lhs, rhs, observer, prefilter, orderIndependent: true })
-  return accum ? accum : changes.length ? changes : undefined
-}
-
-interface ArrayChangeOptions {
-  readonly arr: any[]
-  readonly change: Change
-  readonly index: number
-}
-
-export function applyArrayChange({ arr, index, change }: ArrayChangeOptions) {
+function applyArrayChange(arr: any[], index: number, change: Change) {
   if (change.path && change.path.length) {
     let it = arr[index]
     let i
@@ -366,7 +225,7 @@ export function applyArrayChange({ arr, index, change }: ArrayChangeOptions) {
     }
     switch (change.kind) {
       case 'A':
-        applyArrayChange({ arr: it[change.path[i]], index: change.index, change: change.item })
+        applyArrayChange(it[change.path[i]], change.index, change.item)
         break
       case 'D':
         delete it[change.path[i]]
@@ -379,7 +238,7 @@ export function applyArrayChange({ arr, index, change }: ArrayChangeOptions) {
   } else {
     switch (change.kind) {
       case 'A':
-        applyArrayChange({ arr: arr[index], index: change.index, change: change.item })
+        applyArrayChange(arr[index], change.index, change.item)
         break
       case 'D':
         arr = arrayRemove(arr, index)
@@ -413,7 +272,7 @@ function applyChange(target: any, change: Change) {
         if (change.path && typeof it[change.path[i]] === 'undefined') {
           it[change.path[i]] = []
         }
-        applyArrayChange({ arr: change.path ? it[change.path[i]] : it, index: change.index, change: change.item })
+        applyArrayChange(change.path ? it[change.path[i]] : it, change.index, change.item)
         break
       case 'D':
         if (!change.path) {
@@ -432,17 +291,7 @@ function applyChange(target: any, change: Change) {
   }
 }
 
-export function applyChanges(target: any, changes: Change | Change[]) {
-  const targetClone = cloneDeep(target)
-  changes = Array.isArray(changes) ? changes : [changes]
-  for (const change of changes) {
-    const changeClone = cloneDeep(change)
-    applyChange(targetClone, changeClone)
-  }
-  return targetClone
-}
-
-export function revertArrayChange({ arr, index, change }: ArrayChangeOptions) {
+function revertArrayChange(arr: any[], index: number, change: Change) {
   if (change.path && change.path.length) {
     // the structure of the object at the index has changed...
     let it = arr[index]
@@ -452,7 +301,7 @@ export function revertArrayChange({ arr, index, change }: ArrayChangeOptions) {
     }
     switch (change.kind) {
       case 'A':
-        revertArrayChange({ arr: it[change.path[i]], index: change.index, change: change.item })
+        revertArrayChange(it[change.path[i]], change.index, change.item)
         break
       case 'D':
         it[change.path[i]] = change.lhs
@@ -468,7 +317,7 @@ export function revertArrayChange({ arr, index, change }: ArrayChangeOptions) {
     // the array item is different...
     switch (change.kind) {
       case 'A':
-        revertArrayChange({ arr: arr[index], index: change.index, change: change.item })
+        revertArrayChange(arr[index], change.index, change.item)
         break
       case 'D':
         arr[index] = change.lhs
@@ -500,7 +349,7 @@ function revertChange(target: any, change: Change) {
       case 'A':
         // Array was modified...
         // it will be an array...
-        revertArrayChange({ arr: target[change.path[i]], index: change.index, change: change.item })
+        revertArrayChange(target[change.path[i]], change.index, change.item)
         break
       case 'D':
         // Item was deleted...
@@ -528,23 +377,17 @@ export function revertChanges(target: any, changes: Change | Change[]) {
   return targetClone
 }
 
-interface ApplyDiffOptions {
-  readonly filter?: (target: any, source: any, change: Change) => any
-  readonly source: any
-  readonly target: any
-}
-
-export function applyDiff({ target, source, filter }: ApplyDiffOptions) {
-  if (target && source) {
-    const onChange = (change: Change) => {
-      if (!filter || filter(target, source, change)) {
-        applyChange(target, change)
-      }
-    }
-    observableDiff({ lhs: target, rhs: source, observer: onChange })
+export function applyChanges(target: any, changes: Change | Change[]) {
+  const targetClone = cloneDeep(target)
+  changes = Array.isArray(changes) ? changes : [changes]
+  for (const change of changes) {
+    const changeClone = cloneDeep(change)
+    applyChange(targetClone, changeClone)
   }
+  return targetClone
 }
 
-export default function(original: any, updated: any, prefilter?: (path: any, key: any) => void, accum?: any[]) {
-  return accumulateDiff({ lhs: original, rhs: updated, prefilter, accum })
+export default function(original: any, updated: any, prefilter?: (path: any, key: any) => void) {
+  const differences = deepDiff({ lhs: original, rhs: updated, prefilter })
+  return differences.length ? differences : undefined
 }
