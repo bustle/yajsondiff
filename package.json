@@ -1,7 +1,7 @@
 {
   "name": "yajsondiff",
   "description": "Yet another JSON diff utility, for generating and applying patches",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "keywords": [
     "diff",
