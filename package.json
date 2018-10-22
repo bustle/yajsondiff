@@ -1,5 +1,5 @@
 {
-  "name": "yadiffjson",
+  "name": "yajsondiff",
   "description": "Yet another JSON diff utility, for generating and applying patches",
   "version": "1.0.2",
   "license": "MIT",
@@ -13,7 +13,7 @@
   "author": "Tristan Siegel <tristan@bustle.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/bustle/yadiffjson.git"
+    "url": "git://github.com/bustle/yajsondiff.git"
   },
   "main": "dist/index.js",
   "scripts": {

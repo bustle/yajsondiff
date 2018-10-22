@@ -1,10 +1,13 @@
-# yadiffjson
+# yajsondiff
 
-**yadiffjson** is Yet Another Json Diffing library. It is a Typescript fork of [Deep Diff](https://github.com/flitbit/diff). It's API has been paired down, simplified, and is now non-destructive and always returns new objects in applying and reverting changes.
+**yajsondiff** is Yet Another Json Diffing library. It is a Typescript fork of [Deep Diff](https://github.com/flitbit/diff). It's API has been paired down, simplified, and is now non-destructive and always returns new objects in applying and reverting changes.
+
+[![CircleCI](https://circleci.com/gh/bustle/yajsondiff.svg?style=svg)](https://circleci.com/gh/bustle/yajsondiff)
+[![NPM](https://nodei.co/npm/yajsondiff.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/yajsondiff/)
 
 ## Install
 ```bash
-npm install yadiffjson
+npm install yajsondiff
 ```
 
 ## Features
@@ -13,12 +16,12 @@ npm install yadiffjson
 
 ## Installation
 ```bash
-npm install yadiffjson
+npm install yajsondiff
 ```
 
 ### Usage
 ```typescript
-import { diff, applyChanges, revertChanges } from 'yadiffjson'
+import { diff, applyChanges, revertChanges } from 'yajsondiff'
 import assert from 'assert'
 
 const original = {
@@ -79,7 +82,7 @@ Changes to arrays are recorded simplistically. We care most about the shape of t
 differences. If the structural differences are applied from the `comparand` to the `origin` then the two objects will compare as "deep equal" using most `isEqual` implementations such as found in [lodash](https://github.com/bestiejs/lodash) or [underscore](http://underscorejs.org/).
 
 ```typescript
-import { diff, applyChanges, revertChanges } from 'yadiffjson'
+import { diff, applyChanges, revertChanges } from 'yajsondiff'
 import assert from 'assert'
 
 const original = {
@@ -126,7 +129,7 @@ console.log(diff(original, updated))
 The `prefilter`'s signature should be `function(path, key)` and it should return a truthy value for any `path`-`key` combination that should be filtered. If filtered, the difference analysis does no further analysis of on the identified object-property path.
 
 ```typescript
-import { diff } from 'yadiffjson'
+import { diff } from 'yajsondiff'
 import assert from 'assert'
 
 const data = {
@@ -136,7 +139,7 @@ const data = {
   posts: [
     {
       date: '2018-04-16',
-      text: `additional example for prefilter for yadiffjson would be great.`
+      text: `additional example for prefilter for yajsondiff would be great.`
     }
   ]
 }
