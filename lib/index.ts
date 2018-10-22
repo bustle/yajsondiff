@@ -53,7 +53,7 @@ class ArrayDiff extends BaseDiff {
   }
 }
 
-type Change = EditDiff | NewDiff | DeleteDiff | ArrayDiff
+export type Change = EditDiff | NewDiff | DeleteDiff | ArrayDiff
 
 function arrayRemove(arr: any[], from: number, to?: number) {
   const rest = arr.slice((to || from) + 1 || arr.length)
@@ -82,7 +82,7 @@ function realTypeOf(subject: any) {
   return 'object'
 }
 
-interface DeepDiffOptions {
+interface FindDifferencesOptions {
   readonly changes?: Change[]
   readonly key?: any
   readonly lhs: any
@@ -92,7 +92,7 @@ interface DeepDiffOptions {
   readonly stack?: any[]
 }
 
-function findDifferences({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [] }: DeepDiffOptions) {
+function findDifferences({ lhs, rhs, changes = [], prefilter, path = [], key, stack = [] }: FindDifferencesOptions) {
   const currentPath = path.slice(0)
   if (typeof key !== 'undefined' && key !== null) {
     if (prefilter && prefilter(currentPath, key)) {
