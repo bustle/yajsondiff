@@ -4,7 +4,7 @@
     "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
-    "declaration": false,
+    "declaration": true,
     "outDir": "dist",
     "strictNullChecks": true,
     "noImplicitAny": true,
@@ -13,7 +13,7 @@
       "dom"
     ],
     "esModuleInterop": true,
-    "sourceMap": true
+    "sourceMap": false
   },
   "include": [
     "lib"

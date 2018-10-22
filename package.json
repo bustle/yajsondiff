@@ -16,11 +16,10 @@
     "url": "git://github.com/bustle/yajsondiff.git"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "tsc -b tsconfig-build.json",
-    "posttest": "npm run lint",
-    "preci": "npm run lint",
-    "ci": "mocha --reporter mocha-junit-reporter test/**/*.js",
     "test": "npm run unit-test && npm run lint",
     "unit-test": "TS_NODE_TRANSPILE_ONLY=true mocha --opts mocha.opts",
     "lint": "tslint lib/*.ts",
