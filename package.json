@@ -18,7 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "build": "tsc -b tsconfig-build.json",
     "test": "npm run unit-test && npm run lint",
     "unit-test": "TS_NODE_TRANSPILE_ONLY=true mocha --opts mocha.opts",
