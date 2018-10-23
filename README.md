@@ -50,9 +50,9 @@ assert.deepEqual(revertChanges(updated, differences), original)
 ```
 
 ## API Documentation
-* `diff(lhs, rhs, prefilter)` - calculates the differences between two objects, optionally prefiltering elements for comparison, and optionally using the specified accumulator.
-* `applyChanges(target, changes)` - applies a single change or an array array of changes to a target object.
-* `revertChanges(target, changes)` - reverts a single change or an array array of changes to a target object.
+* `diff(lhs, rhs, prefilter): Change[] | null` - calculates the differences between two objects, optionally prefiltering elements for comparison, and optionally using the specified accumulator.
+* `applyChanges(target: any, changes: Change | Change[] | null): any` - applies a single change or an array array of changes to a target object.
+* `revertChanges(target: any, changes: Change | Change[] | null): any` - reverts a single change or an array array of changes to a target object.
 
 #### Arguments
 
@@ -60,7 +60,7 @@ assert.deepEqual(revertChanges(updated, differences), original)
 * `rhs` - the right-hand operand; the object being compared structurally with the origin object.
 * `prefilter` - an optional function that determines whether difference analysis should continue down the object graph.
 
-Returns either an array of changes or, if there are no changes, `undefined`. This was originally chosen so the result would be pass a truthy test.
+Returns either an array of changes or `null`.
 
 #### Differences
 Differences are reported as one or more change records. Change records have the following structure:
@@ -154,5 +154,5 @@ const none = diff(data, clone,
 )
 
 assert.equal(two.length, 2, 'should reflect two differences')
-assert.ok(typeof none === 'undefined', 'should reflect no differences')
+assert.ok(none == null, 'should reflect no differences')
 ```

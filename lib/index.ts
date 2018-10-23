@@ -253,41 +253,44 @@ function applyArrayChange(arr: any[], index: number, change: Change) {
 }
 
 function applyChange(target: any, change: Change) {
-  if (target && change && change.kind) {
-    let it = target
-    let i = -1
-    const last = change.path ? change.path.length - 1 : 0
-    while (++i < last) {
+  if (!change || !target) {
+    return
+  }
+  if (!change.kind) {
+    throw new TypeError('Invalid change object')
+  }
+  let i = -1
+  const last = change.path ? change.path.length - 1 : 0
+  while (++i < last) {
+    if (!change.path) {
+      throw new Error('There must be a path to continue down tree')
+    }
+    if (typeof target[change.path[i]] === 'undefined') {
+      target[change.path[i]] =
+        typeof change.path[i + 1] !== 'undefined' && typeof change.path[i + 1] === 'number' ? [] : {}
+    }
+    target = target[change.path[i]]
+  }
+  switch (change.kind) {
+    case 'A':
+      if (change.path && typeof target[change.path[i]] === 'undefined') {
+        target[change.path[i]] = []
+      }
+      applyArrayChange(change.path ? target[change.path[i]] : target, change.index, change.item)
+      break
+    case 'D':
       if (!change.path) {
-        throw new Error('There must be a path to continue down tree')
+        throw new Error('There must be a path to delete')
       }
-      if (typeof it[change.path[i]] === 'undefined') {
-        it[change.path[i]] =
-          typeof change.path[i + 1] !== 'undefined' && typeof change.path[i + 1] === 'number' ? [] : {}
+      delete target[change.path[i]]
+      break
+    case 'E':
+    case 'N':
+      if (!change.path) {
+        throw new Error('There must be a path to set')
       }
-      it = it[change.path[i]]
-    }
-    switch (change.kind) {
-      case 'A':
-        if (change.path && typeof it[change.path[i]] === 'undefined') {
-          it[change.path[i]] = []
-        }
-        applyArrayChange(change.path ? it[change.path[i]] : it, change.index, change.item)
-        break
-      case 'D':
-        if (!change.path) {
-          throw new Error('There must be a path to delete')
-        }
-        delete it[change.path[i]]
-        break
-      case 'E':
-      case 'N':
-        if (!change.path) {
-          throw new Error('There must be a path to set')
-        }
-        it[change.path[i]] = change.rhs
-        break
-    }
+      target[change.path[i]] = change.rhs
+      break
   }
 }
 
@@ -334,41 +337,48 @@ function revertArrayChange(arr: any[], index: number, change: Change) {
 }
 
 function revertChange(target: any, change: Change) {
-  if (target && change && change.kind) {
-    if (!change.path) {
-      throw new Error("This change doesn't have a path")
+  if (!change || !target) {
+    return
+  }
+  if (!change.kind) {
+    throw new TypeError('Invalid change object')
+  }
+  if (!change.path) {
+    throw new Error("This change doesn't have a path")
+  }
+  let i
+  for (i = 0; i < change.path.length - 1; i++) {
+    if (typeof target[change.path[i]] === 'undefined') {
+      target[change.path[i]] = {}
     }
-    let i
-    for (i = 0; i < change.path.length - 1; i++) {
-      if (typeof target[change.path[i]] === 'undefined') {
-        target[change.path[i]] = {}
-      }
-      target = target[change.path[i]]
-    }
-    switch (change.kind) {
-      case 'A':
-        // Array was modified...
-        // it will be an array...
-        revertArrayChange(target[change.path[i]], change.index, change.item)
-        break
-      case 'D':
-        // Item was deleted...
-        target[change.path[i]] = change.lhs
-        break
-      case 'E':
-        // Item was edited...
-        target[change.path[i]] = change.lhs
-        break
-      case 'N':
-        // Item is new...
-        delete target[change.path[i]]
-        break
-    }
+    target = target[change.path[i]]
+  }
+  switch (change.kind) {
+    case 'A':
+      // Array was modified...
+      // it will be an array...
+      revertArrayChange(target[change.path[i]], change.index, change.item)
+      break
+    case 'D':
+      // Item was deleted...
+      target[change.path[i]] = change.lhs
+      break
+    case 'E':
+      // Item was edited...
+      target[change.path[i]] = change.lhs
+      break
+    case 'N':
+      // Item is new...
+      delete target[change.path[i]]
+      break
   }
 }
 
-export function revertChanges(target: any, changes: Change | Change[]) {
+export function revertChanges(target: any, changes: Change | Change[] | null) {
   const targetClone = cloneDeep(target)
+  if (!changes) {
+    return targetClone
+  }
   changes = Array.isArray(changes) ? changes : [changes]
   for (const change of changes) {
     const changeClone = cloneDeep(change)
@@ -377,8 +387,11 @@ export function revertChanges(target: any, changes: Change | Change[]) {
   return targetClone
 }
 
-export function applyChanges(target: any, changes: Change | Change[]) {
+export function applyChanges(target: any, changes: Change | Change[] | null) {
   const targetClone = cloneDeep(target)
+  if (!changes) {
+    return targetClone
+  }
   changes = Array.isArray(changes) ? changes : [changes]
   for (const change of changes) {
     const changeClone = cloneDeep(change)
@@ -390,5 +403,5 @@ export function applyChanges(target: any, changes: Change | Change[]) {
 export function diff(original: any, updated: any, prefilter?: (path: any, key: any) => void) {
   const changes: Change[] = []
   findDifferences({ lhs: original, rhs: updated, changes, prefilter })
-  return changes.length ? changes : undefined
+  return changes.length ? changes : null
 }
